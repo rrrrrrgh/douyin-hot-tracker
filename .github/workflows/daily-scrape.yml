@@ -17,25 +17,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install uv
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-
-      - name: Install tkcrawl
-        run: |
-          git clone https://github.com/Kitemanul/tkcrawl.git /tmp/tkcrawl
-          cd /tmp/tkcrawl
-          # 修补超时时间
-          sed -i 's/timeout=3000/timeout=15000/g' src/tkcrawl/client.py
-          uv sync
-          uv run playwright install --with-deps chromium
+      - name: Install dependencies
+        run: pip install requests
 
       - name: Run scraper
-        run: |
-          cd /tmp/tkcrawl
-          sudo apt-get update && sudo apt-get install -y xvfb
-          xvfb-run -a uv run tkcrawl search "热门" --type video --max-count 30 -o output/hot_videos.json
+        run: python fetch_hot.py
 
       - name: Send email with results
         uses: dawidd6/action-send-mail@v3
@@ -44,11 +30,10 @@ jobs:
           server_port: ${{ secrets.SMTP_PORT }}
           username: ${{ secrets.SMTP_USERNAME }}
           password: ${{ secrets.SMTP_PASSWORD }}
-          subject: "每日抖音热门视频数据 - ${{ github.run_id }}"
+          subject: "每日抖音热榜数据 - ${{ github.run_id }}"
           to: ${{ secrets.RECIPIENT_EMAIL }}
           from: ${{ secrets.SMTP_USERNAME }}
-          attachments: /tmp/tkcrawl/output/hot_videos.json
-          body: |
-            你好，
-            这是今天抓取的抖音热门视频数据，详情请查看附件。
-            抓取时间：${{ github.event.repository.updated_at }}
+          # 读取脚本生成的正文
+          body: file://email_body.txt
+          # 附件
+          attachments: douyin_hot.json
