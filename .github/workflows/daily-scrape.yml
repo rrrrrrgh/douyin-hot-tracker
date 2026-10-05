@@ -33,7 +33,6 @@ jobs:
           subject: "每日抖音热榜数据 - ${{ github.run_id }}"
           to: ${{ secrets.RECIPIENT_EMAIL }}
           from: ${{ secrets.SMTP_USERNAME }}
-          # 读取脚本生成的正文
-          body: file://email_body.txt
-          # 附件
-          attachments: douyin_hot.json
+          # 修改这里：使用绝对路径
+          body: file://${{ github.workspace }}/email_body.txt
+          attachments: ${{ github.workspace }}/douyin_hot.json
