@@ -2,9 +2,8 @@ name: Daily Douyin Hot Scrape
 
 on:
   schedule:
-    # 每天北京时间早上8点运行 (UTC时间 0点)
-    - cron: '0 0 * * *'
-  workflow_dispatch: # 允许你手动点击按钮触发
+    - cron: '0 0 * * *' # 每天北京时间早上8点
+  workflow_dispatch: # 允许手动触发
 
 jobs:
   scrape-and-send:
@@ -27,6 +26,8 @@ jobs:
         run: |
           git clone https://github.com/Kitemanul/tkcrawl.git /tmp/tkcrawl
           cd /tmp/tkcrawl
+          # 修补超时时间
+          sed -i 's/timeout=3000/timeout=15000/g' src/tkcrawl/client.py
           uv sync
           uv run playwright install --with-deps chromium
 
@@ -51,4 +52,3 @@ jobs:
             你好，
             这是今天抓取的抖音热门视频数据，详情请查看附件。
             抓取时间：${{ github.event.repository.updated_at }}
-            数据条数：30条
